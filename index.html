@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provilac Recruiting — Manager Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- 1. MANAGER LOGIN (SIMPLE ID & PASSWORD) -->
+<div id="loginScreen" class="login-wrapper">
+    <div class="login-card">
+        <div class="login-logo-wrap">
+            <div class="brand-logo-sq"><i class="fa-solid fa-leaf"></i></div>
+            <h2>Provilac Recruiting</h2>
+        </div>
+        <p class="subtitle">Manager Secure Portal</p>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="mgrUser">Manager ID</label>
+                <input type="text" id="mgrUser" placeholder="Enter ID" required>
+            </div>
+            <div class="input-group">
+                <label for="mgrPass">Password</label>
+                <input type="password" id="mgrPass" placeholder="Enter Password" required>
+            </div>
+            <button type="submit" class="btn-gradient">Sign In</button>
+            <div id="loginError" class="login-error">Invalid ID or Password</div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. MAIN APP CONTAINER -->
+<div id="dashboardApp" class="app-layout hidden">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo-sq"><i class="fa-solid fa-leaf"></i></div>
+            <span>Provilac</span>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+                <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-tab="candidates" onclick="switchTab('candidates', this)">
+                <i class="fa-solid fa-users"></i> <span>Candidates</span>
+            </button>
+            <button class="nav-item" data-tab="reports" onclick="switchTab('reports', this)">
+                <i class="fa-solid fa-file-lines"></i> <span>Reports</span>
+            </button>
+            <button class="nav-item" data-tab="settings" onclick="switchTab('settings', this)">
+                <i class="fa-solid fa-gear"></i> <span>Settings</span>
+            </button>
+        </nav>
+        
+        <!-- Bottom Admin Profile -->
+        <div class="sidebar-profile" onclick="toggleProfileMenu(event)">
+            <img id="sidebarAdminAvatar" src="https://api.dicebear.com/9.x/avataaars/svg?seed=AdminManager&top=shortFlat" alt="Admin" class="admin-avatar">
+            <div class="admin-info">
+                <strong id="sidebarAdminName">Admin Manager</strong>
+                <span id="sidebarAdminEmail">admin@provilac.com</span>
+            </div>
+            <i class="fa-solid fa-chevron-up"></i>
+            
+            <div id="profileDropdown" class="profile-dropdown hidden">
+                <div onclick="goToSettings()"><i class="fa-solid fa-user-pen"></i> Edit Profile & Avatar</div>
+                <div onclick="goToSettings()"><i class="fa-solid fa-lock"></i> Change Password</div>
+                <div onclick="showActivityLog()"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</div>
+                <div class="dropdown-divider"></div>
+                <div onclick="logoutManager()" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- RIGHT CONTENT AREA -->
+    <div class="main-content-wrap">
+        <header class="topbar">
+            <div class="topbar-title" id="topbarTitle">Dashboard Overview</div>
+            <div class="topbar-actions">
+                <button class="btn-soft" onclick="fetchCandidates()">
+                    <i class="fa-solid fa-rotate"></i> Refresh Data
+                </button>
+                <button class="btn-soft btn-danger-soft" onclick="logoutManager()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <main class="main-container">
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content">
+                <!-- 3 Clean Clickable Stat Cards -->
+                <div class="stats-bar three-cards">
+                    <div class="stat-pill clickable-stat" onclick="navigateFromStat('ALL')" title="View all candidates">
+                        <div class="stat-icon-box"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Profiles</span>
+                            <strong id="statTotal">0</strong>
+                        </div>
+                        <i class="fa-solid fa-arrow-right stat-arrow"></i>
+                    </div>
+                    <div class="stat-pill clickable-stat" onclick="navigateFromStat('New')" title="View new applicants">
+                        <div class="stat-icon-box" style="color: #0284c7; background: #e0f2fe;"><i class="fa-solid fa-user-plus"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">New Applicant</span>
+                            <strong id="statNew">0</strong>
+                        </div>
+                        <i class="fa-solid fa-arrow-right stat-arrow"></i>
+                    </div>
+                    <div class="stat-pill clickable-stat" onclick="navigateFromStat('Shortlisted')" title="View shortlisted candidates">
+                        <div class="stat-icon-box" style="color: #0d9488; background: #f0fdfa;"><i class="fa-solid fa-user-check"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Shortlisted</span>
+                            <strong id="statShortlisted">0</strong>
+                        </div>
+                        <i class="fa-solid fa-arrow-right stat-arrow"></i>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="filter-field">
+                        <label for="searchName">Filter by Name, Phone, Email</label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchName" placeholder="Search candidate..." oninput="applyFilters()">
+                        </div>
+                    </div>
+                    <div class="filter-field">
+                        <label for="dateFrom">From Date (MM/DD/YYYY)</label>
+                        <input type="date" id="dateFrom" onchange="applyFilters()">
+                    </div>
+                    <div class="filter-field">
+                        <label for="dateTo">To Date (MM/DD/YYYY)</label>
+                        <input type="date" id="dateTo" onchange="applyFilters()">
+                    </div>
+                    <button class="btn-clear" onclick="resetFilters()" title="Reset Filters">
+                        <i class="fa-solid fa-xmark"></i> Reset
+                    </button>
+                </div>
+
+                <div id="loader" class="loader">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Loading profiles...
+                </div>
+
+                <div id="candidatesGrid" class="candidates-grid"></div>
+
+                <div id="loadMoreWrap" class="load-more-wrap hidden">
+                    <button class="btn-gradient btn-load-more" onclick="loadMoreCandidates()">
+                        Load More Profiles
+                    </button>
+                </div>
+            </section>
+
+            <!-- TAB 2: CANDIDATES TABLE MANAGEMENT -->
+            <section id="tab-candidates" class="tab-content hidden">
+                <div class="card-box">
+                    <div class="section-top-flex">
+                        <div>
+                            <h3>Candidate Database Management</h3>
+                            <p class="sub-hint">Showing <strong id="tableCountBadge">0</strong> candidates</p>
+                        </div>
+                        <div class="action-buttons-row">
+                            <select id="tableStatusFilter" class="status-filter-select" onchange="renderCandidatesTable()">
+                                <option value="ALL">All Statuses</option>
+                                <option value="New">New</option>
+                                <option value="Under Review">Under Review</option>
+                                <option value="Shortlisted">Shortlisted</option>
+                                <option value="Interview Scheduled">Interview Scheduled</option>
+                                <option value="Selected">Selected</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                            <button class="btn-soft" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                            <button class="btn-soft" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-file-arrow-up"></i> Import CSV</button>
+                            <input type="file" id="importFile" class="hidden" accept=".csv,.xlsx" onchange="importData(event)">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Contact</th>
+                                    <th>City</th>
+                                    <th>Education</th>
+                                    <th>Experience</th>
+                                    <th>Status</th>
+                                    <th>Applied (MM/DD/YYYY)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="candidatesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: REPORTS -->
+            <section id="tab-reports" class="tab-content hidden">
+                <div class="card-box">
+                    <div class="section-top-flex">
+                        <div>
+                            <h3>Recruitment Analytics & Reports</h3>
+                            <p class="sub-hint">Live pipeline breakdown, city distribution, and education metrics.</p>
+                        </div>
+                        <button class="btn-soft" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Download CSV Report</button>
+                    </div>
+                    
+                    <div class="report-stats-grid" id="reportStatsContainer"></div>
+
+                    <div class="charts-grid" id="reportChartsContainer"></div>
+                </div>
+            </section>
+
+            <!-- TAB 4: SETTINGS -->
+            <section id="tab-settings" class="tab-content hidden">
+                <div class="settings-layout">
+                    <!-- Left Column: Profile & Avatar -->
+                    <div class="card-box">
+                        <h3>Manager Profile & Avatar</h3>
+                        <p class="sub-hint" style="margin-bottom:18px;">Customize your display name, email, and profile picture.</p>
+
+                        <div class="avatar-editor-row">
+                            <img id="settingsAvatarPreview" src="https://api.dicebear.com/9.x/avataaars/svg?seed=AdminManager&top=shortFlat" alt="Preview" class="settings-avatar-lg">
+                            <div class="avatar-editor-actions">
+                                <button type="button" class="btn-soft" onclick="document.getElementById('avatarUploadInput').click()">
+                                    <i class="fa-solid fa-camera"></i> Upload Photo
+                                </button>
+                                <button type="button" class="btn-soft" onclick="randomizeAdminAvatar()">
+                                    <i class="fa-solid fa-shuffle"></i> Random Avatar
+                                </button>
+                                <input type="file" id="avatarUploadInput" class="hidden" accept="image/*" onchange="handleAdminAvatarUpload(event)">
+                                <small style="color:var(--text-muted); font-size:11.5px;">Supports JPG, PNG or instant generated avatar</small>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="settingDisplayName">Manager Display Name</label>
+                            <input type="text" id="settingDisplayName" placeholder="Enter your name">
+                        </div>
+                        <div class="input-group">
+                            <label for="settingAdminEmail">Manager Email</label>
+                            <input type="email" id="settingAdminEmail" placeholder="admin@provilac.com">
+                        </div>
+                        <button class="btn-gradient" onclick="saveManagerProfile()">Save Profile Details</button>
+                    </div>
+
+                    <!-- Right Column: Security & Form Controls -->
+                    <div class="card-box">
+                        <h3>Security & Portal Controls</h3>
+                        <p class="sub-hint" style="margin-bottom:18px;">Update login credentials and dropdown options.</p>
+
+                        <div class="settings-group">
+                            <h4>Login Credentials</h4>
+                            <div class="input-group">
+                                <label for="settingLoginId">Manager Login ID</label>
+                                <input type="text" id="settingLoginId" value="admin">
+                            </div>
+                            <div class="input-group">
+                                <label for="settingNewPass">New Password (leave blank to keep current)</label>
+                                <input type="password" id="settingNewPass" placeholder="Enter new password">
+                            </div>
+                        </div>
+
+                        <div class="settings-group" style="border-bottom:none; padding-bottom:0; margin-bottom:16px;">
+                            <h4>Configurable Dropdowns</h4>
+                            <div class="input-group">
+                                <label for="settingEduOpts">Education Options (Comma separated)</label>
+                                <input type="text" id="settingEduOpts" value="BCA, B.Tech, MBA, B.Sc, B.Com, MCA">
+                            </div>
+                            <div class="input-group">
+                                <label for="settingChannelOpts">Job Channels</label>
+                                <input type="text" id="settingChannelOpts" value="Direct, LinkedIn, Referral, Walk-in, Job Portal">
+                            </div>
+                        </div>
+
+                        <button class="btn-gradient" onclick="saveSystemSettings()">Save Portal Settings</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<!-- 3. FULL PROFILE MODAL -->
+<div id="profileModal" class="modal-overlay hidden" onclick="if(event.target.id==='profileModal') closeProfileModal()">
+    <div class="modal-card" id="printableProfile">
+        <div class="modal-header">
+            <div class="modal-user-head">
+                <img id="modalAvatar" src="" alt="Profile">
+                <div>
+                    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <h3 id="modalName">Candidate Name</h3>
+                        <span id="modalStatusBadge" class="status-pill-header">New</span>
+                    </div>
+                    <span id="modalMeta">Applied: MM/DD/YYYY • City</span>
+                </div>
+            </div>
+            <button class="modal-close no-print" onclick="closeProfileModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
